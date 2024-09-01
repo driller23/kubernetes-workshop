@@ -11,19 +11,19 @@ kubectl apply -f logging-namespace.yaml
 2. Now, let's set up Elasticsearch:
 
 ```
-kubectl apply -f elasticsearch.yaml
+kubectl apply -f elasticsearch-statefulset.yaml
 ```
 
 3. Next, let's set up Fluentd as a DaemonSet:
 
 ```
-kubectl apply -f fluentd.yaml
+kubectl apply -f fluentd-daemonset.yaml
 ```
 
 4. Finally, let's set up Kibana:
 
 ```
-kubectl apply -f kibana.yaml
+kubectl apply -f kibana-deployment.yaml
 ```
 
 Now you have the EFK (Elasticsearch, Fluentd, Kibana) stack installed on your kind Kubernetes cluster with Fluentd running as a DaemonSet. To access these services:
