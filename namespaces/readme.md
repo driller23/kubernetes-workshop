@@ -96,6 +96,14 @@ Check the quota:
 kubectl describe quota -n development
 ```
 
+## confront the quota 
+
+run this:
+
+```
+./quota.sh
+```
+
 ## 6. RBAC Setup
 
 Now, let's set up RBAC for our namespaces:
