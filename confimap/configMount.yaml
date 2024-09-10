@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demo-pod
+spec:
+  containers:
+    - name: app
+      command: ["demo-app", "--database-host", "$(DATABASE_HOST)"]
+      image: demo-app:latest
+      env:
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: demo-config
+              key: database_host
