@@ -16,3 +16,6 @@ kubectl describe configmap demo-config
 
 OR
 ```kubectl get configmap demo-config -o jsonpath='{.data}' | jq```
+
+## envForm example
+```kubectl apply -f demo-pod.yaml```
