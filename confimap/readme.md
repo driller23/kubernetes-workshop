@@ -13,3 +13,6 @@ OR inspect
 ```
 kubectl describe configmap demo-config
 ```
+
+OR
+```kubectl get configmap demo-config -o jsonpath='{.data}' | jq```
