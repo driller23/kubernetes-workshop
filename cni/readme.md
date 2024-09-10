@@ -64,5 +64,6 @@ kubectl get services
 # Step 10: Test network connectivity
 
 ```
-kubectl run busybox --rm -ti --image=busybox -- wget -O- http://nginx
+kubectl run -it --rm --restart=Never busybox --image=busybox -- sh
+# wget http://nginx
 ```
