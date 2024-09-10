@@ -67,3 +67,23 @@ kubectl get services
 kubectl run -it --rm --restart=Never busybox --image=busybox -- sh
 # wget http://nginx
 ```
+
+Here's how you can enable and access the Cilium Hubble UI:
+
+First, make sure you have Cilium installed in your cluster.
+Enable Hubble and its UI:
+
+```
+cilium hubble enable --ui
+```
+
+Port-forward the Hubble UI service to access it from your local machine:
+
+```
+cilium hubble UI
+```
+This command will automatically set up port-forwarding and open the Hubble UI in your default web browser.
+If the automatic browser opening doesn't work, you can manually access the UI by opening a web browser and navigating to:
+
+http://localhost:12000
+
