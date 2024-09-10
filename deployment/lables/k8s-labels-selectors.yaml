@@ -1,0 +1,203 @@
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: label-demo
+  labels:
+    environment: development
+    team: backend
+
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: label-demo
+  labels:
+    app: web
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+        tier: frontend
+    spec:
+      containers:
+      - name: web-app
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: label-demo
+  labels:
+    app: web
+    tier: frontend
+spec:
+  selector:
+    app: web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: label-demo
+  labels:
+    app: web
+    config: frontend
+data:
+  APP_COLOR: blue
+  APP_MODE: production
+
+---
+# Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: label-demo
+  labels:
+    app: web
+    security: high
+type: Opaque
+stringData:
+  DB_PASSWORD: supersecret
+
+---
+# PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: web-storage
+  namespace: label-demo
+  labels:
+    app: web
+    storage: persistent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-app-hpa
+  namespace: label-demo
+  labels:
+    app: web
+    autoscaling: enabled
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web-app
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 50
+
+---
+# NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: web-network-policy
+  namespace: label-demo
+  labels:
+    app: web
+    network: restricted
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: frontend
+    ports:
+    - protocol: TCP
+      port: 80
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: backend
+    ports:
+    - protocol: TCP
+      port: 5432
+
+---
+# Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-processor
+  namespace: label-demo
+  labels:
+    app: batch
+    job: data-processing
+spec:
+  template:
+    metadata:
+      labels:
+        app: batch
+        job: data-processing
+    spec:
+      containers:
+      - name: data-processor
+        image: data-processor:v1
+      restartPolicy: Never
+
+---
+# CronJob
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: backup-job
+  namespace: label-demo
+  labels:
+    app: maintenance
+    job: backup
+spec:
+  schedule: "0 1 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: maintenance
+            job: backup
+        spec:
+          containers:
+          - name: backup
+            image: backup-tool:v1
+          restartPolicy: OnFailure
