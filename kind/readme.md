@@ -1,5 +1,5 @@
 # Create a kind cluster:
-bashCopykind create cluster --name my-web-app
+kind create cluster --name my-web-app
 
 ## Write a Deployment YAML (web-app-deployment.yaml):
 
