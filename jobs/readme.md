@@ -31,11 +31,15 @@ kubectl get pods
 Save the YAML content into a file (e.g., db-backup-script-configmap.yaml).
 Apply the YAML file:
 
+### deploy the MySQL 
+```kubectl apply -f db-backup-script-configmap.yaml```
+
+### deploy the backup job
 ```kubectl apply -f db-backup-script-configmap.yaml```
 
 ## Monitor the Job and Pods:
 ```
-ubectl get configmaps
+kubectl get configmaps
 kubectl get jobs
 kubectl get pods
 ```
