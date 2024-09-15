@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: database-backup
+spec:
+  template:
+    spec:
+      containers:
+      - name: backup
+        image: bitnami/mysqldump:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: root-password
+        command: 
+        - "/bin/sh"
+        - "-c"
+        - |
+          mysqldump -h mysql-service -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /backup/full-backup-$(date +%Y%m%d).sql
+        volumeMounts:
+        - name: backup-volume
+          mountPath: /backup
+      restartPolicy: Never
+      volumes:
+      - name: backup-volume
+        emptyDir: {}
+  backoffLimit: 3
