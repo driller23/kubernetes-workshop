@@ -8,6 +8,11 @@ kind create cluster
 ```
 
 ## Apply the YAML files:
+
+### first apply the MySQL yaml 
+
+```kubectl apply -f mysql.yaml```
+
 ```
 kubectl apply -f simple-job.yaml
 kubectl apply -f simple-cronjob.yaml
