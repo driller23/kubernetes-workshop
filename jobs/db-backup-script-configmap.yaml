@@ -11,20 +11,14 @@ data:
   backup-script.sh: |
     #!/bin/bash
     set -e
-    
     echo "Starting database backup process..."
-    
     if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
       echo "Error: MYSQL_ROOT_PASSWORD is not set"
       exit 1
     fi
-    
     BACKUP_PATH="/backup/${BACKUP_FILENAME}"
-    
     echo "Backing up database ${DB_NAME} from ${DB_HOST}:${DB_PORT} to ${BACKUP_PATH}"
-    
     mysqldump -h "${DB_HOST}" -P "${DB_PORT}" -u root -p"${MYSQL_ROOT_PASSWORD}" "${DB_NAME}" > "${BACKUP_PATH}"
-    
     if [ $? -eq 0 ]; then
       echo "Backup completed successfully"
       echo "Backup stored at: ${BACKUP_PATH}"
@@ -34,10 +28,72 @@ data:
     fi
 
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secrets
+type: Opaque
+stringData:
+  root-password: "your-strong-password-here"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql:5.7
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: root-password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: db-backup-config
+              key: DB_NAME
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: database-backup-with-script
+  name: database-backup-job
 spec:
   template:
     spec:
