@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-backup-config
+data:
+  DB_HOST: "mysql-service"
+  DB_PORT: "3306"
+  DB_NAME: "myapp_database"
+  BACKUP_FILENAME: "full-backup-$(date +%Y%m%d).sql"
+  backup-script.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "Starting database backup process..."
+    
+    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+      echo "Error: MYSQL_ROOT_PASSWORD is not set"
+      exit 1
+    fi
+    
+    BACKUP_PATH="/backup/${BACKUP_FILENAME}"
+    
+    echo "Backing up database ${DB_NAME} from ${DB_HOST}:${DB_PORT} to ${BACKUP_PATH}"
+    
+    mysqldump -h "${DB_HOST}" -P "${DB_PORT}" -u root -p"${MYSQL_ROOT_PASSWORD}" "${DB_NAME}" > "${BACKUP_PATH}"
+    
+    if [ $? -eq 0 ]; then
+      echo "Backup completed successfully"
+      echo "Backup stored at: ${BACKUP_PATH}"
+    else
+      echo "Backup failed"
+      exit 1
+    fi
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: database-backup-with-script
+spec:
+  template:
+    spec:
+      containers:
+      - name: backup
+        image: bitnami/mysqldump:latest
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: db-backup-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: db-backup-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: db-backup-config
+              key: DB_NAME
+        - name: BACKUP_FILENAME
+          valueFrom:
+            configMapKeyRef:
+              name: db-backup-config
+              key: BACKUP_FILENAME
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: root-password
+        volumeMounts:
+        - name: backup-volume
+          mountPath: /backup
+        - name: script-volume
+          mountPath: /scripts
+        command: ["/bin/bash"]
+        args: ["/scripts/backup-script.sh"]
+      restartPolicy: Never
+      volumes:
+      - name: backup-volume
+        emptyDir: {}
+      - name: script-volume
+        configMap:
+          name: db-backup-config
+          items:
+            - key: backup-script.sh
+              path: backup-script.sh
+              mode: 0755
+  backoffLimit: 3
