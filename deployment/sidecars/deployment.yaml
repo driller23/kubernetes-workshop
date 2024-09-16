@@ -30,4 +30,3 @@ spec:
           volumeMounts:
             - name: log-volume # Mount the same volume as the main container
               mountPath: /var/log # Mount it to the same directory in the sidecar container
-N
