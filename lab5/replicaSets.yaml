@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend-training
+  labels:
+    app: frontend
+    environment: training
+spec:
+  # Define the number of replica pods
+  replicas: 3
+  
+  # Selector defines how the ReplicaSet finds pods to manage
+  selector:
+    matchLabels:
+      app: frontend
+      environment: training
+  
+  # Template for the pods that will be created
+  template:
+    metadata:
+      labels:
+        app: frontend
+        environment: training
+    spec:
+      containers:
+      - name: nginx-frontend
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
