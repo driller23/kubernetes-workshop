@@ -1,29 +1,4 @@
-# 1. First, create a kind cluster configuration
-
----
-# 2. MetalLB Installation and Configuration
-
-# 3. Example Application Deployment
-
----
-# 4. LoadBalancer Service
-# loadbalancer-service.yaml
-```
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-loadbalancer
-spec:
-  type: LoadBalancer
-  ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
-  selector:
-    app: nginx
-```
-## Save the kind config to kind-config.yaml and create cluster
+## Run the kind config to kind-config.yaml and create cluster
 ```
 kind create cluster --config kind-config.yaml
 ```
