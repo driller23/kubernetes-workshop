@@ -1,18 +1,5 @@
 # 1. First, create a kind cluster configuration
-# kind-config.yaml
-```
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-name: kind-cluster
-nodes:
-- role: control-plane
-- role: worker
-- role: worker
-networking:
-  # Configure the IP address range that LoadBalancer IPs will use
-  podSubnet: "10.244.0.0/16"
-  serviceSubnet: "10.96.0.0/16"
-```
+
 ---
 # 2. MetalLB Installation and Configuration
 # metallb-config.yaml
