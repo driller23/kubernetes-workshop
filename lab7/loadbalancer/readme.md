@@ -2,33 +2,7 @@
 
 ---
 # 2. MetalLB Installation and Configuration
-# metallb-config.yaml
 
-```
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: metallb-system
----
-apiVersion: metallb.io/v1beta1
-kind: IPAddressPool
-metadata:
-  name: first-pool
-  namespace: metallb-system
-spec:
-  addresses:
-  - 172.18.255.200-172.18.255.250  # Adjust this range based on your kind network
----
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
-metadata:
-  name: l2-advert
-  namespace: metallb-system
-spec:
-  ipAddressPools:
-  - first-pool
-```
----
 # 3. Example Application Deployment
 # app-deployment.yaml
 ```
