@@ -36,6 +36,8 @@ When you re-apply the manifest, you’ll see a Forbidden error because the immut
 
 ```
 kubectl apply -f demo-config-immutable.yaml
-The ConfigMap "demo-config-immutable" is invalid: data: Forbidden: field is immutable when `immutable` is set
 ```
+
+The ConfigMap "demo-config-immutable" is invalid: data: Forbidden: field is immutable when `immutable` is set
+
 
