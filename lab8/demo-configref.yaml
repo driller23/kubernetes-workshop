@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: demo-pod
+  name: demo-pod-config-ref
 spec:
   containers:
     - name: app
