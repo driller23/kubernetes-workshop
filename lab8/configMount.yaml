@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: demo-pod
+  name: demo-pod-mount
 spec:
   containers:
     - name: app
-      command: ["demo-app", "--database-host", "$(DATABASE_HOST)"]
-      image: demo-app:latest
+      command: ["demo-app", "--database-host", "${DATABASE_HOST}"]
+      image: busybox:latest
       env:
         - name: DATABASE_HOST
           valueFrom:
