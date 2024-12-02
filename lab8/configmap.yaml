@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: game-config
+  labels:
+    app: game
+    type: config
+data:
+  # Configuration values as a properties file
+  game.properties: |
+    enemy.types=aliens,monsters
+    player.maximum-lives=5
+    player.initial-lives=3
+    player.level=1
