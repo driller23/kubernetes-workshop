@@ -4,37 +4,7 @@
 # 2. MetalLB Installation and Configuration
 
 # 3. Example Application Deployment
-# app-deployment.yaml
-```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-  labels:
-    app: nginx
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:latest
-        ports:
-        - containerPort: 80
-          name: http
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 10
-```
+
 ---
 # 4. LoadBalancer Service
 # loadbalancer-service.yaml
