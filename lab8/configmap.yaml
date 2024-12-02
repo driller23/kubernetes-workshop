@@ -1,3 +1,4 @@
+# configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -12,3 +13,24 @@ data:
     player.maximum-lives=5
     player.initial-lives=3
     player.level=1
+
+---
+# Pod using the ConfigMap
+apiVersion: v1
+kind: Pod
+metadata:
+  name: game-pod
+  labels:
+    app: game
+spec:
+  containers:
+    - name: game-container
+      image: nginx
+      command: ['sh', '-c', 'cat /etc/config/game.properties']
+      volumeMounts:
+      - name: config-volume
+        mountPath: /etc/config
+  volumes:
+    - name: config-volume
+      configMap:
+        name: game-config
