@@ -1,241 +1,247 @@
-# Kubernetes Network Policies Tutorial
+# Kubernetes Network Policies Training Lab
 
-A comprehensive guide and examples for implementing Kubernetes Network Policies in different scenarios.
-
-## Overview
-
-This repository provides practical examples and tutorials for implementing Kubernetes Network Policies, including:
-- Basic deny/allow policies
-- Microservice communication
-- Multi-tenant isolation
-- Advanced use cases
+A hands-on training guide for understanding and implementing Kubernetes Network Policies using kind (Kubernetes in Docker).
 
 ## Prerequisites
 
-- Kubernetes cluster (1.20+)
-- CNI plugin with NetworkPolicy support (Calico, Cilium, etc.)
-- kubectl configured
-- Basic understanding of Kubernetes networking
+- Docker installed
+- kind installed
+- kubectl installed
+- Basic understanding of Kubernetes concepts
 
-## Quick Start
+## Lab Setup
 
-1. Clone this repository:
-```bash
-git clone https://github.com/yourusername/k8s-network-policies
-cd k8s-network-policies
-```
-
-2. Set up a test cluster:
-```bash
-./scripts/setup-cluster.sh
-```
-
-## Repository Structure
-
-```
-.
-├── examples/
-│   ├── 01-basic-policies/
-│   │   ├── deny-all.yaml
-│   │   └── allow-specific.yaml
-│   ├── 02-microservices/
-│   │   ├── frontend-backend.yaml
-│   │   └── database.yaml
-│   └── 03-advanced/
-│       ├── multi-tenant.yaml
-│       └── egress-control.yaml
-├── demo/
-│   ├── complete-stack/
-│   └── scenarios/
-├── scripts/
-│   ├── setup-cluster.sh
-│   └── cleanup.sh
-└── docs/
-    ├── diagrams/
-    └── scenarios/
-```
-
-## Basic Examples
-
-### 1. Default Deny All Traffic
+1. Create a kind cluster configuration with Calico CNI:
 
 ```yaml
-# examples/01-basic-policies/deny-all.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny-all
-  namespace: default
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
-```
-
-### 2. Allow Frontend to Backend
-
-```yaml
-# examples/02-microservices/frontend-backend.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-frontend-to-backend
-  namespace: default
-spec:
-  podSelector:
-    matchLabels:
-      app: backend
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: frontend
-    ports:
-    - protocol: TCP
-      port: 8080
-```
-
-## Scenarios & Demos
-
-### Basic Demo Setup
-
-1. Create test namespaces:
-```bash
-kubectl create namespace prod
-kubectl create namespace dev
-```
-
-2. Label namespaces:
-```bash
-kubectl label namespace prod environment=production
-kubectl label namespace dev environment=development
-```
-
-3. Deploy test applications:
-```bash
-kubectl apply -f demo/complete-stack/
-```
-
-### Testing Network Policies
-
-Test connectivity between pods:
-```bash
-# Test frontend to backend communication
-kubectl -n prod exec -it $(kubectl -n prod get pod -l app=frontend -o jsonpath='{.items[0].metadata.name}') -- \
-  curl http://backend:8080
-
-# Test blocked communication
-kubectl -n dev exec -it $(kubectl -n dev get pod -l app=frontend -o jsonpath='{.items[0].metadata.name}') -- \
-  curl http://backend.prod:8080
-```
-
-## Advanced Examples
-
-### Multi-tenant Isolation
-
-```yaml
-# examples/03-advanced/multi-tenant.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: tenant-isolation
-spec:
-  podSelector:
-    matchLabels:
-      tenant: tenant1
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          tenant: tenant1
-  egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          tenant: tenant1
-```
-
-## Best Practices
-
-1. **Default Deny**
-   - Start with restrictive policies
-   - Add specific allowances as needed
-
-2. **Documentation**
-   - Label all resources consistently
-   - Document policy intentions
-   - Keep diagrams updated
-
-3. **Testing**
-   - Regular connectivity tests
-   - Maintain test cases
-   - Monitor policy effectiveness
-
-4. **Security**
-   - Regular policy audits
-   - Follow principle of least privilege
-   - Monitor denied connections
-
-## Scripts
-
-### Setup Script
-```bash
-#!/bin/bash
-# scripts/setup-cluster.sh
-
-# Create kind cluster with Calico
-cat <<EOF | kind create cluster --config=-
+# kind-config.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
-  disableDefaultCNI: true
-  podSubnet: "192.168.0.0/16"
+  disableDefaultCNI: true  # Disable default CNI
+  podSubnet: "192.168.0.0/16"  # Calico's default subnet
 nodes:
 - role: control-plane
 - role: worker
 - role: worker
-EOF
-
-# Install Calico
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-
-# Wait for Calico to be ready
-kubectl -n kube-system wait --for=condition=ready pod -l k8s-app=calico-node --timeout=90s
 ```
 
-### Cleanup Script
+2. Create the cluster:
 ```bash
-#!/bin/bash
-# scripts/cleanup.sh
-
-# Delete all network policies
-kubectl delete networkpolicy --all --all-namespaces
-
-# Delete test namespaces
-kubectl delete namespace prod dev
-
-# Optional: Delete cluster
-kind delete cluster
+kind create cluster --name netpol-lab --config kind-config.yaml
 ```
+
+3. Install Calico CNI:
+```bash
+kubectl apply -f https://docs.projectcalico.org/v3.25/manifests/calico.yaml
+```
+
+## Lab Exercises
+
+### 1. Understanding Default Behavior
+
+1. Create test namespaces:
+```bash
+kubectl create namespace frontend
+kubectl create namespace backend
+kubectl create namespace database
+```
+
+2. Deploy test applications:
+```yaml
+# frontend-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+  namespace: frontend
+  labels:
+    name: frontend
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+---
+# backend-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend
+  namespace: backend
+  labels:
+    name: backend
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+```
+
+### 2. Basic Network Policy Implementation
+
+#### PodSelector Example
+```yaml
+# backend-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-network-policy
+  namespace: backend
+spec:
+  podSelector:
+    matchLabels:
+      name: backend
+  policyTypes:    
+  - Ingress    
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          name: frontend
+    ports:
+    - port: 8080
+      protocol: TCP
+```
+
+### 3. Namespace Policies
+
+#### NamespaceSelector Example
+```yaml
+# namespace-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: namespace-policy
+  namespace: backend
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: frontend
+```
+
+### 4. IP Block Rules
+
+```yaml
+# ip-block-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ip-block-policy
+spec:
+  podSelector:
+    matchLabels:
+      name: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 192.168.0.0/16
+    ports:
+    - port: 8080
+      protocol: TCP
+```
+
+## Practical Exercises
+
+### Exercise 1: Implementing Basic Isolation
+
+1. Create default deny policy:
+```bash
+kubectl apply -f https://raw.githubusercontent.com/yourusername/netpol-training/main/policies/default-deny.yaml
+```
+
+2. Test isolation:
+```bash
+# Test pod communication
+kubectl exec -n frontend frontend -- curl http://backend.backend
+# Should fail
+```
+
+### Exercise 2: Allowing Specific Traffic
+
+1. Apply frontend-to-backend policy:
+```bash
+kubectl apply -f policies/frontend-backend.yaml
+```
+
+2. Verify communication:
+```bash
+# Should now succeed
+kubectl exec -n frontend frontend -- curl http://backend.backend
+```
+
+## Testing and Verification
+
+### Network Policy Testing Tools
+
+1. Deploy testing pod:
+```bash
+kubectl run test-pod --image=nicolaka/netshoot -n frontend -- sleep 3600
+```
+
+2. Test connectivity:
+```bash
+kubectl exec -it test-pod -n frontend -- curl -v telnet://backend.backend:80
+```
+
+## Common Troubleshooting
+
+### 1. Policy Not Working
+- Check CNI installation:
+```bash
+kubectl get pods -n kube-system | grep calico
+```
+
+- Verify policy syntax:
+```bash
+kubectl describe networkpolicy <policy-name> -n <namespace>
+```
+
+### 2. Unexpected Blocking
+```bash
+# Debug with netshoot
+kubectl run tmp-shell --rm -i --tty --image=nicolaka/netshoot -- /bin/bash
+```
+
+## Best Practices
+
+1. **Start with Default Deny**
+   - Implement default deny policies first
+   - Add specific allowances as needed
+
+2. **Policy Organization**
+   - Use clear naming conventions
+   - Document policy purposes
+   - Keep policies focused
+
+3. **Testing**
+   - Test before enforcement
+   - Maintain test cases
+   - Document expected behavior
+
+## Cleanup
+
+Remove the lab environment:
+```bash
+kind delete cluster --name netpol-lab
+```
+
+## Additional Resources
+
+- [Kubernetes Network Policies Documentation](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+- [Calico Network Policy Documentation](https://docs.projectcalico.org/security/network-policy)
+- [Network Policy Editor](https://editor.cilium.io/)
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch
-3. Submit a Pull Request
+Feel free to submit issues and enhancement requests!
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Kubernetes Network Policy Documentation
-- Calico Project
-- Container Network Interface (CNI) Specification
