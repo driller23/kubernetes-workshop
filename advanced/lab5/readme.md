@@ -12,7 +12,7 @@ This repository contains a hands-on lab for implementing Horizontal Pod Autoscal
 
 1. Create a Kind cluster configuration:
 
-```yaml
+```
 # kind-config.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -24,7 +24,7 @@ nodes:
 
 2. Create the cluster:
 
-```bash
+```
 kind create cluster --name hpa-demo --config kind-config.yaml
 ```
 
@@ -32,33 +32,28 @@ kind create cluster --name hpa-demo --config kind-config.yaml
 
 1. Create metrics-server configuration for Kind:
 
-```yaml
-# metrics-server-components.yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    k8s-app: metrics-server
-  name: metrics-server
-  namespace: kube-system
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: metrics-server-config
-  namespace: kube-system
-data:
-  args: |
-    - --kubelet-insecure-tls
-    - --kubelet-preferred-address-types=InternalIP
----
-# ... [rest of metrics server configuration]
+```kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.5.0/components.yaml
 ```
+Apply the patch for the certificate issue, create file named metric-server-patch.yaml, and fill it with these lines
+
+```
+spec:
+template:
+spec:
+containers:
+- args:
+- --cert-dir=/tmp
+- --secure-port=443
+- --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+- --kubelet-use-node-status-port
+- --metric-resolution=15s
+- --kubelet-insecure-tls
+name: metrics-server```
 
 2. Apply the configuration:
 
-```bash
-kubectl apply -f metrics-server-components.yaml
+```
+kubectl patch deployment metrics-server -n kube-system --patch "$(cat metric-server-patch.yaml)"
 ```
 
 ## Deploy Demo Application
