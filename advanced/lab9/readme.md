@@ -13,7 +13,7 @@ This repository provides a guide and configuration for setting up a comprehensiv
 
 1. First, create a Kind cluster using our custom configuration:
 
-```bash
+```
 kind create cluster --name monitoring-demo --config kind-config.yaml
 ```
 
@@ -22,13 +22,13 @@ kind create cluster --name monitoring-demo --config kind-config.yaml
 ### 1. Prometheus and Grafana Setup
 
 1. Add the Prometheus community Helm repository:
-```bash
+```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 ```
 
 2. Install the kube-prometheus-stack:
-```bash
+```
 helm install monitoring prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
   --create-namespace \
@@ -36,27 +36,36 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 ```
 
 3. Verify the installation:
-```bash
+```
 kubectl get pods -n monitoring
+```
+
+4. update your cloud VM
+
+```
+gcloud compute firewall-rules create kind-monitoring \
+    --allow tcp:30300,tcp:30900,tcp:30903 \
+    --target-tags=monitoring \
+    --description="Allow Kind monitoring ports"
 ```
 
 ### 2. Loki Setup
 
 1. Add the Grafana Helm repository:
-```bash
+```
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 ```
 
 2. Install Loki and Promtail:
-```bash
+```
 helm install loki grafana/loki-stack \
   --namespace monitoring \
   --values loki-values.yaml
 ```
 
 3. Verify Loki installation:
-```bash
+```
 kubectl get pods -n monitoring | grep loki
 ```
 
@@ -64,23 +73,22 @@ kubectl get pods -n monitoring | grep loki
 
 ### Grafana
 
-1. Port-forward the Grafana service:
-```bash
-kubectl port-forward svc/monitoring-grafana 3000:80 -n monitoring
+You should now be able to access:
+
+Grafana: http://YOUR_VM_IP:30300
+Prometheus: http://YOUR_VM_IP:30900
+Alertmanager: http://YOUR_VM_IP:30903
+
+To verify everything is working:
+
+#### Check if the ports are properly mapped in the Kind container
+```
+docker ps | grep monitoring-demo-control-plane
+docker port <container-id>
 ```
 
-2. Access Grafana at: http://localhost:3000
-   - Default username: admin
-   - Default password: prom-operator
-
-### Prometheus
-
-1. Port-forward the Prometheus service:
-```bash
-kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 -n monitoring
-```
-
-2. Access Prometheus at: http://localhost:9090
+#### Check if the services are using the correct NodePorts
+```kubectl get svc -n monitoring```
 
 ## Configuration Files
 
@@ -114,18 +122,18 @@ Import them by going to:
 Common issues and solutions:
 
 1. If pods are stuck in Pending state:
-   ```bash
+   ```
    kubectl describe pod <pod-name> -n monitoring
    ```
 
 2. Check Prometheus targets:
-   ```bash
+   ```
    kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 -n monitoring
    ```
    Then visit http://localhost:9090/targets
 
 3. View Loki logs:
-   ```bash
+   ```
    kubectl logs -f deployment/loki -n monitoring
    ```
 
