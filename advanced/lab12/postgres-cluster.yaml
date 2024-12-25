@@ -1,0 +1,63 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: acid-minimal-cluster
+spec:
+  teamId: "acid"
+  volume:
+    size: 5Gi
+    storageClass: longhorn
+  numberOfInstances: 2
+  users:
+    # database owner
+    zalando:  # or any other username you prefer
+    - superuser
+    - createdb
+    # regular users
+    foo_user: []
+  databases:
+    foo: zalando  # dbname: owner
+  postgresql:
+    version: "15"
+    parameters:
+      shared_buffers: "32MB"
+      max_connections: "100"
+      log_statement: "all"
+      
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+      
+  podAnnotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    
+  patroni:
+    initdb:
+      encoding: "UTF8"
+      locale: "en_US.UTF-8"
+      data-checksums: "true"
+    pg_hba:
+    - host all all all md5
+    - hostssl all all all md5
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 33554432
+    
+  enableConnectionPooler: true
+  connectionPooler:
+    numberOfInstances: 2
+    mode: transaction
+    schema: pooler
+    user: pooler
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      limits:
+        cpu: 500m
+        memory: 500Mi
