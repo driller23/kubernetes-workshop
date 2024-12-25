@@ -13,6 +13,9 @@ grafana:
         gnetId: 1860
         revision: 21
         datasource: Prometheus
+  service:
+    type: NodePort
+    nodePort: 30300
 
 prometheus:
   prometheusSpec:
@@ -31,6 +34,9 @@ prometheus:
           resources:
             requests:
               storage: 10Gi
+  service:
+    type: NodePort
+    nodePort: 30900
 
 alertmanager:
   enabled: true
@@ -49,6 +55,9 @@ alertmanager:
         receiver: 'null'
     receivers:
     - name: 'null'
+  service:
+    type: NodePort
+    nodePort: 30903
 
 kubeStateMetrics:
   enabled: true
