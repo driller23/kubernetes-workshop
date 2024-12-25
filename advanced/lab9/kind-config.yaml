@@ -3,20 +3,12 @@ apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
   extraPortMappings:
-  - containerPort: 30000
-    hostPort: 30000
-    protocol: TCP
-  - containerPort: 30001
-    hostPort: 30001
-    protocol: TCP
-  extraMounts:
-  - hostPath: ./data
-    containerPath: /data
-- role: worker
-  extraMounts:
-  - hostPath: ./data
-    containerPath: /data
-- role: worker
-  extraMounts:
-  - hostPath: ./data
-    containerPath: /data
+  - containerPort: 30300
+    hostPort: 30300
+    protocol: TCP  # For Grafana
+  - containerPort: 30900
+    hostPort: 30900
+    protocol: TCP  # For Prometheus
+  - containerPort: 30903
+    hostPort: 30903
+    protocol: TCP  # For Alertmanager
