@@ -1,0 +1,53 @@
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 10Gi
+  config:
+    auth_enabled: false
+    ingester:
+      chunk_idle_period: 3m
+      chunk_block_size: 262144
+      chunk_retain_period: 1m
+      max_transfer_retries: 0
+      lifecycler:
+        ring:
+          kvstore:
+            store: inmemory
+          replication_factor: 1
+
+promtail:
+  enabled: true
+  config:
+    clients:
+      - url: http://{{ .Release.Name }}:3100/loki/api/v1/push
+    snippets:
+      pipelineStages:
+        - docker: {}
+        - match:
+            selector: '{app=~".+"}'
+            stages:
+              - json:
+                  expressions:
+                    log: log
+                    stream: stream
+                    time: time
+              - labels:
+                  stream:
+              - timestamp:
+                  source: time
+                  format: RFC3339Nano
+              - output:
+                  source: log
+
+serviceMonitor:
+  enabled: true
+
+# Resource settings for Kind environment
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
