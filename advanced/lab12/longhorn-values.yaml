@@ -1,0 +1,38 @@
+persistence:
+  defaultClass: true
+  defaultClassReplicaCount: 2
+  reclaimPolicy: Retain
+
+defaultSettings:
+  defaultReplicaCount: 2
+  guaranteedEngineManagerCPU: 0.1
+  guaranteedReplicaManagerCPU: 0.1
+  storageOverProvisioningPercentage: 200
+  storageMinimalAvailablePercentage: 10
+  upgradeChecker: false
+  backupstorePollInterval: 300
+  concurrentReplicaRebuildPerNodeLimit: 2
+  backupTarget: ""
+  backupTargetCredentialSecret: ""
+  createDefaultDiskLabeledNodes: true
+  defaultDataPath: /storage/longhorn
+  replicaSoftAntiAffinity: true
+  volumeAttachmentRecoveryPolicy: wait
+  nodeDownPodDeletionPolicy: do-nothing
+  guaranteedEngineManagerCPU: 0.1
+  guaranteedReplicaManagerCPU: 0.1
+
+ingress:
+  enabled: false
+
+service:
+  ui:
+    type: ClusterIP
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
