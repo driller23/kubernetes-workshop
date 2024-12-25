@@ -117,6 +117,18 @@ Import them by going to:
 1. Dashboard > Import
 2. Upload the JSON files from the `dashboards` directory
 
+## install Demo App
+
+### Create namespace
+```
+kubectl create namespace demo
+```
+
+### Apply the demo application
+```
+kubectl apply -f demo-app.yaml
+```
+
 ## Troubleshooting
 
 Common issues and solutions:
