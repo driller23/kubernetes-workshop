@@ -19,7 +19,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 2. Install WordPress:
 
 ```bash
-helm install my-wordpress bitnami/wordpress --version 10.1.4
+helm install my-wordpress bitnami/wordpress --version 24.1.4
 ```
 
 ## Getting Admin Credentials
