@@ -63,7 +63,7 @@ kubectl apply -f
 
 5. Test connectivity after policies:
 ```
-./scripts/test-connectivity.sh after
+./test-connectivity.sh after
 ```
 
 ### 2. Advanced Policy Scenarios
@@ -74,32 +74,16 @@ Follow the exercises in the [exercises](./exercises/) directory for:
 - Egress policies
 - Mixed policy types
 
-## Directory Structure
+1.  Apply advanced deployments and policies
+
 ```
-.
-├── config/
-│   ├── kind-config.yaml
-│   └── calico.yaml
-├── manifests/
-│   ├── namespaces.yaml
-│   └── deployments.yaml
-├── policies/
-│   ├── basic/
-│   └── advanced/
-├── scripts/
-│   ├── setup.sh
-│   └── test-connectivity.sh
-├── exercises/
-│   └── README.md
-└── tests/
-    └── e2e/
+kubectl apply -f advanced/advanced-deployments.yaml
+kubectl apply -f advanced/multi-tier-policies.yaml
 ```
 
-## Testing and Verification
-
-Run the provided test suite:
+2.  Run advanced tests
 ```
-./scripts/run-tests.sh
+./advanced/test-advanced-policies.sh
 ```
 
 This will verify:
