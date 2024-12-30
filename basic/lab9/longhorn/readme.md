@@ -15,7 +15,7 @@ This lab guides you through setting up Longhorn storage system in a Kind (Kubern
 
 First, create a Kind cluster configuration file `kind-config.yaml`:
 
-```yaml
+```
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -34,7 +34,7 @@ nodes:
 ```
 
 Create the directories for storage:
-```bash
+```
 sudo mkdir -p /tmp/longhorn-storage
 sudo mkdir -p /tmp/longhorn-storage-worker1
 sudo mkdir -p /tmp/longhorn-storage-worker2
@@ -42,14 +42,14 @@ sudo chmod 777 /tmp/longhorn-storage*
 ```
 
 Create the cluster:
-```bash
+```
 kind create cluster --name longhorn-test --config kind-config.yaml
 ```
 
 ### 2. Install Required Dependencies
 
 Install open-iscsi in the Kind nodes:
-```bash
+```
 for node in $(kind get nodes --name longhorn-test); do
   docker exec $node apt-get update
   docker exec $node apt-get install -y open-iscsi
@@ -61,18 +61,18 @@ done
 ### 3. Install Longhorn
 
 Add the Longhorn Helm repository:
-```bash
+```
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
 ```
 
 Create longhorn namespace:
-```bash
+```
 kubectl create namespace longhorn-system
 ```
 
 Install Longhorn:
-```bash
+```
 helm install longhorn longhorn/longhorn \
   --namespace longhorn-system \
   --set defaultSettings.defaultReplicaCount=2 \
@@ -80,14 +80,14 @@ helm install longhorn longhorn/longhorn \
 ```
 
 Verify the installation:
-```bash
+```
 kubectl -n longhorn-system get pods
 ```
 
 ### 4. Access Longhorn UI
 
 Create port-forward to access the Longhorn UI:
-```bash
+```
 kubectl port-forward -n longhorn-system service/longhorn-frontend 8000:80
 ```
 
@@ -96,7 +96,7 @@ Access the UI at http://localhost:8000
 ### 5. Test Storage with Demo Application
 
 Create a PVC (test-pvc.yaml):
-```yaml
+```
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -111,7 +111,7 @@ spec:
 ```
 
 Create a test pod (test-pod.yaml):
-```yaml
+```
 apiVersion: v1
 kind: Pod
 metadata:
@@ -130,7 +130,7 @@ spec:
 ```
 
 Apply the configurations:
-```bash
+```
 kubectl apply -f test-pvc.yaml
 kubectl apply -f test-pod.yaml
 ```
@@ -138,12 +138,12 @@ kubectl apply -f test-pod.yaml
 ### 6. Verify Storage Functionality
 
 Write test data:
-```bash
+```
 kubectl exec -it test-pod -- /bin/bash -c "echo 'Hello Longhorn' > /usr/share/nginx/html/test.txt"
 ```
 
 Verify data persistence:
-```bash
+```
 # Delete the pod
 kubectl delete pod test-pod
 
@@ -159,13 +159,13 @@ kubectl exec -it test-pod -- cat /usr/share/nginx/html/test.txt
 ### Common Issues in Kind Environment
 
 1. If pods are stuck in ContainerCreating state:
-```bash
+```
 kubectl describe pod <pod-name>
 kubectl -n longhorn-system logs -l app=longhorn-manager
 ```
 
 2. If volume mounting fails:
-```bash
+```
 # Check iscsi status in nodes
 for node in $(kind get nodes --name longhorn-test); do
   echo "Checking $node..."
@@ -174,7 +174,7 @@ done
 ```
 
 3. If Longhorn UI is not accessible:
-```bash
+```
 kubectl -n longhorn-system get svc
 kubectl -n longhorn-system describe svc longhorn-frontend
 ```
@@ -182,25 +182,25 @@ kubectl -n longhorn-system describe svc longhorn-frontend
 ### Clean Up
 
 Delete the test resources:
-```bash
+```
 kubectl delete pod test-pod
 kubectl delete pvc test-pvc
 ```
 
 Delete the entire Kind cluster:
-```bash
+```
 kind delete cluster --name longhorn-test
 ```
 
 Clean up storage directories:
-```bash
+```
 sudo rm -rf /tmp/longhorn-storage*
 ```
 
 ## Additional Files
 
 ### kind-config.yaml
-```yaml
+```
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -219,7 +219,7 @@ nodes:
 ```
 
 ### setup-scripts/install-dependencies.sh
-```bash
+```
 #!/bin/bash
 
 # Create storage directories
@@ -239,7 +239,7 @@ done
 ```
 
 ### test-pvc.yaml
-```yaml
+```
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -254,7 +254,7 @@ spec:
 ```
 
 ### test-pod.yaml
-```yaml
+```
 apiVersion: v1
 kind: Pod
 metadata:

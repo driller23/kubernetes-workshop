@@ -2,31 +2,26 @@
 
 A hands-on training guide for understanding and implementing Kubernetes Network Policies using kind (Kubernetes in Docker).
 
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Lab Setup](#lab-setup)
+- [Lab Exercises](#lab-exercises)
+- [Testing and Verification](#testing-and-verification)
+- [Troubleshooting Guide](#troubleshooting-guide)
+- [Best Practices](#best-practices)
+
 ## Prerequisites
 
-- Docker installed
-- kind installed
-- kubectl installed
+- Docker installed and running
+- [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) v0.20.0 or higher
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) v1.28.0 or higher
 - Basic understanding of Kubernetes concepts
 
 ## Lab Setup
 
-1. Create a kind cluster configuration with Calico CNI:
+1. Clone this repository:
 
-```
-# kind-config.yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-networking:
-  disableDefaultCNI: true  # Disable default CNI
-  podSubnet: "192.168.0.0/16"  # Calico's default subnet
-nodes:
-- role: control-plane
-- role: worker
-- role: worker
-```
-
-2. Create the cluster:
+2. Create the kind cluster:
 ```
 kind create cluster --name netpol-lab --config kind-config.yaml
 ```
@@ -36,212 +31,100 @@ kind create cluster --name netpol-lab --config kind-config.yaml
 kubectl apply -f https://docs.projectcalico.org/v3.25/manifests/calico.yaml
 ```
 
+4. Verify Calico installation:
+```
+kubectl wait --for=condition=ready pods -l k8s-app=calico-node -n kube-system --timeout=90s
+```
+
 ## Lab Exercises
 
-### 1. Understanding Default Behavior
+### 1. Basic Network Policy Implementation
 
-1. Create test namespaces:
+1. Create test namespaces and deployments:
 ```
-kubectl create namespace frontend
-kubectl create namespace backend
-kubectl create namespace database
+kubectl apply -f deployments.yaml
 ```
 
-2. Deploy test applications:
+2. Verify pods are running:
 ```
-# frontend-pod.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: frontend
-  namespace: frontend
-  labels:
-    name: frontend
-spec:
-  containers:
-  - name: nginx
-    image: nginx
----
-# backend-pod.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: backend
-  namespace: backend
-  labels:
-    name: backend
-spec:
-  containers:
-  - name: nginx
-    image: nginx
+kubectl get pods -n frontend
+kubectl get pods -n backend
 ```
 
-### 2. Basic Network Policy Implementation
-
-#### PodSelector Example
+3. Test connectivity before applying policies:
 ```
-# backend-policy.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: backend-network-policy
-  namespace: backend
-spec:
-  podSelector:
-    matchLabels:
-      name: backend
-  policyTypes:    
-  - Ingress    
-  - Egress
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          name: frontend
-    ports:
-    - port: 8080
-      protocol: TCP
+./test-connectivity.sh before
 ```
 
-### 3. Namespace Policies
-
-#### NamespaceSelector Example
+4. Apply basic network policies:
 ```
-# namespace-policy.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: namespace-policy
-  namespace: backend
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: frontend
+kubectl apply -f 
 ```
 
-### 4. IP Block Rules
-
+5. Test connectivity after policies:
 ```
-# ip-block-policy.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: ip-block-policy
-spec:
-  podSelector:
-    matchLabels:
-      name: backend
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - ipBlock:
-        cidr: 192.168.0.0/16
-    ports:
-    - port: 8080
-      protocol: TCP
+./scripts/test-connectivity.sh after
 ```
 
-## Practical Exercises
+### 2. Advanced Policy Scenarios
 
-### Exercise 1: Implementing Basic Isolation
+Follow the exercises in the [exercises](./exercises/) directory for:
+- Namespace isolation
+- IP block rules
+- Egress policies
+- Mixed policy types
 
-1. Create default deny policy:
+## Directory Structure
 ```
-kubectl apply -f https://raw.githubusercontent.com/yourusername/netpol-training/main/policies/default-deny.yaml
-```
-
-2. Test isolation:
-```
-# Test pod communication
-kubectl exec -n frontend frontend -- curl http://backend.backend
-# Should fail
-```
-
-### Exercise 2: Allowing Specific Traffic
-
-1. Apply frontend-to-backend policy:
-```
-kubectl apply -f policies/frontend-backend.yaml
-```
-
-2. Verify communication:
-```
-# Should now succeed
-kubectl exec -n frontend frontend -- curl http://backend.backend
+.
+├── config/
+│   ├── kind-config.yaml
+│   └── calico.yaml
+├── manifests/
+│   ├── namespaces.yaml
+│   └── deployments.yaml
+├── policies/
+│   ├── basic/
+│   └── advanced/
+├── scripts/
+│   ├── setup.sh
+│   └── test-connectivity.sh
+├── exercises/
+│   └── README.md
+└── tests/
+    └── e2e/
 ```
 
 ## Testing and Verification
 
-### Network Policy Testing Tools
-
-1. Deploy testing pod:
+Run the provided test suite:
 ```
-kubectl run test-pod --image=nicolaka/netshoot -n frontend -- sleep 3600
+./scripts/run-tests.sh
 ```
 
-2. Test connectivity:
-```
-kubectl exec -it test-pod -n frontend -- curl -v telnet://backend.backend:80
-```
+This will verify:
+- Cluster setup
+- Policy application
+- Network connectivity
+- Expected isolation
 
-## Common Troubleshooting
+## Troubleshooting Guide
 
-### 1. Policy Not Working
-- Check CNI installation:
-```
-kubectl get pods -n kube-system | grep calico
-```
-
-- Verify policy syntax:
-```
-kubectl describe networkpolicy <policy-name> -n <namespace>
-```
-
-### 2. Unexpected Blocking
-```
-# Debug with netshoot
-kubectl run tmp-shell --rm -i --tty --image=nicolaka/netshoot -- /bin/bash
-```
+Common issues and solutions are documented in [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md).
 
 ## Best Practices
 
-1. **Start with Default Deny**
-   - Implement default deny policies first
-   - Add specific allowances as needed
+1. **Default Deny First**
+   - Always start with default deny policies
+   - Add specific allowances incrementally
 
 2. **Policy Organization**
    - Use clear naming conventions
+   - Group related policies
    - Document policy purposes
-   - Keep policies focused
 
 3. **Testing**
-   - Test before enforcement
+   - Run tests before applying to production
    - Maintain test cases
    - Document expected behavior
 
-## Cleanup
-
-Remove the lab environment:
-```
-kind delete cluster --name netpol-lab
-```
-
-## Additional Resources
-
-- [Kubernetes Network Policies Documentation](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
-- [Calico Network Policy Documentation](https://docs.projectcalico.org/security/network-policy)
-- [Network Policy Editor](https://editor.cilium.io/)
-
-## Contributing
-
-Feel free to submit issues and enhancement requests!
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
