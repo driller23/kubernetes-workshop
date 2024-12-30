@@ -22,6 +22,12 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install my-wordpress bitnami/wordpress --version 24.1.4
 ```
 
+3. Search Application version in bitnami
+
+```
+helm search repo bitnami/wordpress --versions
+```
+
 ## Getting Admin Credentials
 
 ### For Mac/Linux:
