@@ -40,15 +40,6 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 kubectl get pods -n monitoring
 ```
 
-4. update your cloud VM
-
-```
-gcloud compute firewall-rules create kind-monitoring \
-    --allow tcp:30300,tcp:30900,tcp:30903 \
-    --target-tags=monitoring \
-    --description="Allow Kind monitoring ports"
-```
-
 ### 2. Loki Setup
 
 1. Add the Grafana Helm repository:
